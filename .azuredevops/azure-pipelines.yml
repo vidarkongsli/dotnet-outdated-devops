@@ -15,7 +15,7 @@ variables:
 steps:
 - pwsh: |
     az devops configure --defaults organization=https://dev.azure.com/elektroniskdatabehandling/
-    if "$(dotnet tool list -g)" -match 'dotnet-outdated-tool'
+    if ("$(dotnet tool list -g)" -match 'dotnet-outdated-tool')
     {
       Write-host "Updating 'outdated' tool..."
       dotnet tool update --global dotnet-outdated-tool
