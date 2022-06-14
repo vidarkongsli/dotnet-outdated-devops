@@ -64,7 +64,7 @@ steps:
 
   - pwsh: |
       Push-Location $env:PROJECT_PATH
-      Write-Host "##[debug]Running in directory (pwd) with version lock $env:VERSION_LOCK"
+      Write-Host "##[debug]Running in directory $(pwd) with version lock $env:VERSION_LOCK"
       dotnet outdated -vl $env:VERSION_LOCK -f
       if ($?)
       {
