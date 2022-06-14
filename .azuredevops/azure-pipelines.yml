@@ -30,7 +30,8 @@ steps:
   - pwsh: |
       Write-host "Retrieving PRs in repository $env:REPO_ID"
       $headers = @{'Authorization'="Bearer $env:AZURE_DEVOPS_EXT_PAT"}
-      $uri = "https://dev.azure.com/$env:ORG/$env:PROJECT_ID/_/_apis/git/repositories/$env:REPO_ID/pullrequests?api-version=7.1-preview.1"
+      $uri = "https://dev.azure.com/$env:ORG/$env:PROJECT_ID/_apis/git/repositories/$env:REPO_ID/pullrequests?api-version=7.1-preview.1"
+      Write-host "Uri is $uri"
       $pullRequests = Invoke-RestMethod -Method GET -Uri $uri -Headers $headers `
         | Select-Object -ExpandProperty value
       $pullRequests
