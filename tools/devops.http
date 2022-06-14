@@ -1,0 +1,11 @@
+@organization=elektroniskdatabehandling
+@project=eksempler
+@repositoryId=dotnet-outdated-devops
+
+GET https://dev.azure.com/{{organization}}/{{project}}/_apis/git/repositories/{{repositoryId}}/pullrequests
+    ?api-version=7.1-preview.1
+Authorization: Basic user:{{$dotenv pat}}
+Accept: application/json
+    #&searchCriteria.creatorId={searchCriteria.creatorId}
+    #&searchCriteria.status={searchCriteria.status}
+
