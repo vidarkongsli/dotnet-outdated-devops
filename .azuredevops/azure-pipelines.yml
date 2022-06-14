@@ -13,5 +13,4 @@ steps:
 - checkout: self
 - ${{ each project in parameters.projects }}:
   - checkout: git://eksempler/${{ project['repository'] }}
-- pwsh: |
-    dir
+- script: dir $(Build.SourcesDirectory)
