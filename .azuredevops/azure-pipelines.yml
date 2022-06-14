@@ -64,14 +64,15 @@ steps:
 
   - pwsh: |
       Push-Location $env:PROJECT_PATH
-      dotnet outdated -vl ${{ parameters.versionLock }} -f
+      Write-Host "##[debug]Running in directory (pwd) with version lock $env:VERSION_LOCK"
+      dotnet outdated -vl $env:VERSION_LOCK -f
       if ($?)
       {
         Write-Host "##[command]All up to date"
         Exit 0
       }
       Write-Host "##[command]Updating project"
-      dotnet outdated -vl ${{ parameters.versionLock }} -u
+      dotnet outdated -vl $env:VERSION_LOCK -u
       dotnet build
       git commit -am "Updates"
       git push -u origin "outdated/$env:CURRENT_PR_ID"
@@ -79,4 +80,4 @@ steps:
     env:
       PROJECT_PATH: ${{ project['projectPath'] }}
       CURRENT_PR_ID: $(CURRENT_PR_ID)
-- script: dir $(Build.SourcesDirectory)
+      VERSION_LOCK: ${{ parameters.versionLock }}
