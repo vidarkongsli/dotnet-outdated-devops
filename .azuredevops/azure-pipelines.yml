@@ -9,8 +9,35 @@ parameters:
     repository: pipeline-triggers
     projectFile: 3
 
+variables:
+  organization: elektroniskdatabehandling
+
 steps:
+- pwsh: |
+    az devops configure --defaults organization=https://dev.azure.com/elektroniskdatabehandling/
 - checkout: self
 - ${{ each project in parameters.projects }}:
   - checkout: git://eksempler/${{ project['repository'] }}
+
+  - pwsh: |
+      $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
+      $utf8 = New-Object -TypeName System.Text.UTF8Encoding
+      $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($env:PROJECT_FILE)))
+      Write-host "Hash is $hash"
+    env:
+      PROJECT_FILE: ${{ project['projectFile'] }}
+
+  - pwsh: |
+      Write-host "Retrieving PRs in repository $env:REPO_ID"
+      $headers = @{'Authorization'="Bearer $env:AZURE_DEVOPS_EXT_PAT"}
+      $uri = "https://dev.azure.com/$env:ORG/$env:PROJECT_ID/_/_apis/git/repositories/$env:REPO_ID/pullrequests?api-version=7.1-preview.1"
+      $pullRequests = Invoke-RestMethod -Method GET -Uri $uri -Headers $headers `
+        | Select-Object -ExpandProperty value
+      $pullRequests
+    env:
+      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+      PROJECT_ID: $(System.TeamProjectId)
+      ORG: $(organization)
+      REPO_ID: ${{ project['repositoryID'] }}
+      
 - script: dir $(Build.SourcesDirectory)
