@@ -20,9 +20,9 @@ steps:
   - checkout: git://eksempler/${{ project['repository'] }}
 
   - pwsh: |
-      $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-      $utf8 = New-Object -TypeName System.Text.UTF8Encoding
-      $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($env:PROJECT_FILE)))
+      $tempFile = New-TemporaryFile
+      Write-Output $env:PROJECT_ID > $tempFile
+      $hash = Get-FileHash -Path $tempFile -Algorithm MD5 | Select-Object -ExpandProperty Hash
       Write-host "Hash is $hash"
     env:
       PROJECT_FILE: ${{ project['projectFile'] }}
@@ -38,6 +38,6 @@ steps:
       AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
       PROJECT_ID: $(System.TeamProjectId)
       ORG: $(organization)
-      REPO_ID: ${{ project['repositoryID'] }}
+      REPO_ID: ${{ project['repository'] }}
       
 - script: dir $(Build.SourcesDirectory)
