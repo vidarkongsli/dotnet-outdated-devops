@@ -1,0 +1,17 @@
+parameters:
+- name: projects
+  type: object
+  default:
+  - a:
+    repository: dependabot-test
+    projectFile: 2
+  - b:
+    repository: pipeline-triggers
+    projectFile: 3
+
+steps:
+- checkout: self
+${{ each project in parameters.projects }}:
+  - checkout: git://eksempler/${{ project['repository'] }}
+- pwsh: |
+    dir
