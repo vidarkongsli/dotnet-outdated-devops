@@ -7,7 +7,7 @@ parameters:
     projectPath: src/Kongsli.Sample.App
 - name: versionLock
   type: string
-  default: minor
+  default: major
 
 variables:
   organization: elektroniskdatabehandling
