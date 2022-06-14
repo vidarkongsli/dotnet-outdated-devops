@@ -3,11 +3,11 @@ parameters:
   type: object
   default:
   - a:
-    repository: dependabot-test
-    projectFile: 2
-  - b:
-    repository: pipeline-triggers
-    projectFile: 3
+    repository: dotnet-outdate-devops-sampleapp
+    projectPath: src/Kongsli.Sample.App
+- name: versionLock
+  type: string
+  default: minor
 
 variables:
   organization: elektroniskdatabehandling
@@ -15,17 +15,29 @@ variables:
 steps:
 - pwsh: |
     az devops configure --defaults organization=https://dev.azure.com/elektroniskdatabehandling/
+    if "$(dotnet tool list -g)" -match 'dotnet-outdated-tool'
+    {
+      Write-host "Updating 'outdated' tool..."
+      dotnet tool update --global dotnet-outdated-tool
+    }
+    else
+    {
+      Write-host "Installing 'outdated' tool..."
+      dotnet tool install --global dotnet-outdated-tool
+    }
+
 - checkout: self
 - ${{ each project in parameters.projects }}:
   - checkout: git://eksempler/${{ project['repository'] }}
 
   - pwsh: |
       $tempFile = New-TemporaryFile
-      Write-Output $env:PROJECT_ID > $tempFile
+      Write-Output $env:PROJECT_PATH > $tempFile
       $hash = Get-FileHash -Path $tempFile -Algorithm MD5 | Select-Object -ExpandProperty Hash
-      Write-host "Hash is $hash"
+      Write-Host "##vso[task.setvariable variable=CURRENT_PR_ID;]$hash"
     env:
-      PROJECT_FILE: ${{ project['projectFile'] }}
+      PROJECT_PATH: ${{ project['projectPath'] }}
+    displayName: Generate ID
 
   - pwsh: |
       Write-host "Retrieving PRs in repository $env:REPO_ID"
@@ -40,5 +52,20 @@ steps:
       PROJECT_ID: $(System.TeamProjectId)
       ORG: $(organization)
       REPO_ID: ${{ project['repository'] }}
-      
+    displayName: Retrieving PRs
+
+  - pwsh: |
+      git checkout -b "outdated/$env:CURRENT_PR_ID"
+    workingDirectory: $(Build.SourcesDirectory)/${{ project['repository'] }}
+    env:
+      CURRENT_PR_ID: $(CURRENT_PR_ID)
+    displayName: Create local branch
+
+  - pwsh: |
+      Push-Location $env:PROJECT_PATH
+      dotnet outdated -vl ${{ parameters.versionLock }}
+    workingDirectory: $(Build.SourcesDirectory)/${{ project['repository'] }}
+    env:
+      PROJECT_PATH: ${{ project['projectPath'] }}
+
 - script: dir $(Build.SourcesDirectory)
